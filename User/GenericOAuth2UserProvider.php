@@ -3,6 +3,7 @@
 namespace Kanboard\Plugin\OAuth2\User;
 
 use Kanboard\Core\Base;
+use Kanboard\Core\Security\Role;                
 use Kanboard\Core\User\UserProviderInterface;
 use Pimple\Container;
 
@@ -114,14 +115,24 @@ class GenericOAuth2UserProvider extends Base implements UserProviderInterface
     /**
      * Get user role
      *
-     * Return an empty string to not override role stored in the database
-     *
      * @access public
      * @return string
      */
     public function getRole()
     {
-        return '';
+        // Init with smallest role
+        $role = Role::APP_USER;         
+        $groupIds = $this->getExternalGroupIds();
+                                             
+        foreach ($groupIds as $groupId) {
+            $groupId = strtolower($groupId);
+            if ($groupId === strtolower(OAUTH_GROUP_ADMIN)) {
+                // Highest role found : we can and we must exit the loop
+                $role = Role::APP_ADMIN;
+                break;
+            }          
+        }                                  
+        return $role;
     }
 
     /**
