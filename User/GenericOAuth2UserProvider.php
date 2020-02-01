@@ -3,6 +3,7 @@
 namespace Kanboard\Plugin\OAuth2\User;
 
 use Kanboard\Core\Base;
+use Kanboard\Core\Security\Role;                
 use Kanboard\Core\User\UserProviderInterface;
 use Pimple\Container;
 
@@ -113,15 +114,34 @@ class GenericOAuth2UserProvider extends Base implements UserProviderInterface
 
     /**
      * Get user role
-     *
-     * Return an empty string to not override role stored in the database
+     * 
+     * The user will be mapped to the highest role possible if their group is as specified 
+     * in the configuration, otherwise the database role is used.
      *
      * @access public
      * @return string
      */
     public function getRole()
     {
-        return '';
+        // Init with empty string to use database role.
+        $role = '';
+        $groupIds = $this->getExternalGroupIds();
+                                             
+        foreach ($groupIds as $groupId) {
+            $groupId = strtolower($groupId);
+
+            if ($this->getGroupAdmin() !== '' && $groupId === strtolower($this->getGroupAdmin())) {
+                // Highest role found : we can and we must exit the loop
+                $role = Role::APP_ADMIN;
+                break;
+            }
+            
+            if ($this->getGroupManager() !== '' && $groupId === strtolower($this->getGroupManager())) {
+                // Intermediate role found : continue to loop as there may be an admin role
+                $role = Role::APP_MANAGER;
+            } 
+        }                                  
+        return $role;
     }
 
     /**
@@ -200,6 +220,28 @@ class GenericOAuth2UserProvider extends Base implements UserProviderInterface
         }
 
         return false;
+    }
+
+    /**
+     * Get admin group name
+     *
+     * @access public
+     * @return string
+     */
+    public function getGroupAdmin()
+    {
+        return $this->getKey('oauth2_admin_group');
+    }
+
+    /**
+     * Get manager group
+     *
+     * @access public
+     * @return string
+     */
+    public function getGroupManager()
+    {
+        return $this->getKey('oauth2_manager_group');
     }
 
     /**

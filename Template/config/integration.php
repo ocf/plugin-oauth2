@@ -42,7 +42,13 @@
 
     <?= $this->form->label(t('Groups Key'), 'oauth2_key_groups') ?>
     <?= $this->form->text('oauth2_key_groups', $values) ?>
-    <p class="form-help"><?= t('Leave empty, when no group mapping is wanted') ?></p>
+    <p class="form-help"><?= t('Leave empty when no group mapping is wanted') ?></p>
+
+    <?= $this->form->label(t('Admin Group'), 'oauth2_admin_group') ?>
+    <?= $this->form->text('oauth2_admin_group', $values) ?>
+
+    <?= $this->form->label(t('Manager Group'), 'oauth2_manager_group') ?>
+    <?= $this->form->text('oauth2_manager_group', $values) ?>
 
     <div class="form-actions">
         <input type="submit" value="<?= t('Save') ?>" class="btn btn-blue"/>
